@@ -1,0 +1,605 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Client module &mdash; Client  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Client  documentation" href="index.html" />
+    <link rel="next" title="clientPublicWindowSetup module" href="clientPublicWindowSetup.html" />
+    <link rel="prev" title="Welcome to Client’s documentation!" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-Client">
+<span id="client-module"></span><h1>Client module<a class="headerlink" href="#module-Client" title="Permalink to this headline">¶</a></h1>
+<p>Client aplikacija služi klijentima za povezivanje na TCP server i razmjenu poruka.
+Klijenti mogu koristiti privatni ili javni chat.
+Dvostrukim klikom na nekog od korisnika iz liste otvara se novi prozor koji
+omogućava privatan chat između ta dva korisnika.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+<dl class="class">
+<dt id="Client.Client">
+<em class="property">class </em><code class="descclassname">Client.</code><code class="descname">Client</code><span class="sig-paren">(</span><em>host</em>, <em>port</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#Client"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.Client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Klasa &#8220;Client&#8221; omogućava korisniku unos korisničkog imena i povezivanja na TCP server.
+Ako je povezivanje uspjelo korisnik može pisati javne poruke, i otvarati prozore za privatan chat sa ostalim
+online klijentima.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="#Client.Client.host" title="Client.Client.host"><strong>host</strong></a> &#8211; Ip adresa servera na koji se klijent povezuje</li>
+<li><a class="reference internal" href="#Client.Client.port" title="Client.Client.port"><strong>port</strong></a> &#8211; Broj porta servera na koji se klijent povezuje</li>
+<li><a class="reference internal" href="#Client.Client.privateChatWindows" title="Client.Client.privateChatWindows"><strong>privateChatWindows</strong></a> &#8211; Lista trenutno otvorenih privatnih prozora</li>
+<li><a class="reference internal" href="#Client.Client.receiveDataFromServerThread" title="Client.Client.receiveDataFromServerThread"><strong>receiveDataFromServerThread</strong></a> &#8211; Nit(Thread, dretva) za primanje podataka od servera</li>
+<li><a class="reference internal" href="#Client.Client.sock" title="Client.Client.sock"><strong>sock</strong></a> &#8211; Klijentov socket</li>
+<li><a class="reference internal" href="#Client.Client.username" title="Client.Client.username"><strong>username</strong></a> &#8211; Korisničko ime klijenta</li>
+<li><a class="reference internal" href="#Client.Client.addr" title="Client.Client.addr"><strong>addr</strong></a> &#8211; Adresa klijenta</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+<dl class="attribute">
+<dt id="Client.Client.addr">
+<code class="descname">addr</code><em class="property"> = None</em><a class="headerlink" href="#Client.Client.addr" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">addr: Ip adresa i port klijenta</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tuple(string, int) &#8212; tuple(ip, port)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Client.Client.appendMsg">
+<code class="descname">appendMsg</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#Client.appendMsg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.Client.appendMsg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja služi za dodavanje teksta u &#8220;txtReceive&#8221; tekstualno polje (poruke javnog chat-a).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<em>string</em>) &#8211; Poruka koju treba dodati.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Client.Client.btnConnect_click">
+<code class="descname">btnConnect_click</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#Client.btnConnect_click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.Client.btnConnect_click" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja se poziva klikom na &#8220;btnConnect&#8221; gumb unutar prozora za javni chat.
+Metoda će return-ati ako nije unešeno korisničko ime, u suprotnom pokušava povezati klijenta
+sa serverom.
+Ako je povezivanje uspješno serveru se šalje &#8220;clientConnected&#8221; paket koji sadrži više podataka o novom klijentu
+radi ažuriranja liste klijenata, te se pokreće klijentova nit za primanje podataka od servera(receiveDataFromServerThread).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raise:</th><td class="field-body">socket.error</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Client.Client.btnSend_click">
+<code class="descname">btnSend_click</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#Client.btnSend_click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.Client.btnSend_click" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja se poziva klikom na &#8220;btnSend&#8221; gumb unutar prozora za javni chat.
+Ako nije unešen nikakav text, metoda će return-ati, u suprotnom pokušava
+poslati unešeni tekst kao javnu poruku.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raise:</th><td class="field-body">socket.error</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Client.Client.clientsListBoxEntryOnDblClick">
+<code class="descname">clientsListBoxEntryOnDblClick</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#Client.clientsListBoxEntryOnDblClick"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.Client.clientsListBoxEntryOnDblClick" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja se poziva dvostrukim klikom na nekog od online klijenata iz liste online klijenata.
+Metoda provjerava je li već otvoren privatni prozor sa odabranim klijentom, te ako jeste stavi fokus na taj prozor,
+a ako nije otvara novi prozor za privatni chat sa odabranim klijentom i sprema taj prozor u listu privatnih prozora.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> (<em>Event</em>) &#8211; Event</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Client.Client.handlePacket">
+<code class="descname">handlePacket</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#Client.handlePacket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.Client.handlePacket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja obrađuje paket primljen od strane servera.</p>
+<p>Primljeni paket je string oblika: tipPaketa|tekst korisničke poruke</p>
+<p>U slučaju privatne poruke paket ima oblik: tipPaketa|podatciOIzvorištu|podatciOOdredištu|tekst korisničke poruke</p>
+<p>Primljena poruka rastavlja se na svako pojavljivanje znaka &#8216;|&#8217;, i tako se dobiva
+lista stringova.</p>
+<p>npr. poruka = privateMessage|zeljko:127.0.0.1:5678|mario:127.0.0.1:8765|Tekst korisničke poruke
+=&gt;
+rastavljenaPoruka = [&#8220;privateMessage&#8221;, &#8220;zeljko:127.0.0.1:5678&#8221;, &#8220;mario:127.0.0.1:8765&#8221;, &#8220;Tekst korisničke poruke&#8221;]</p>
+<p>U rastavljenoj poruci (u listi) na prvom mjestu (indeksu 0) nalazi se tip paketa.
+Na drugom mjestu (index 1) nalaze se podatci o izvorištu, a na
+trećem mjestu (index 2) nalaze se podatci o odredištu.
+Svi ostali elementi liste su korisnička poruka. (indeksi od 3 pa nadalje)</p>
+<p>Poruka se zatim ponovno sastavlja ali bez podataka o tipu paketa, izvorištu i odredištu, i to opet
+na svako pojavljivanje znaka &#8216;|&#8217;. (jer je korisnik mogao unijeti znak &#8216;|&#8217; unutar svoje poruke)</p>
+<p>sastavljenaPoruka = &#8216;|&#8217;.join(rastavljenaPoruka[3:]) ==&gt; spoji rastavljenu poruku znakom &#8216;|&#8217;, počevši od
+indeksa broj 3 pa nadalje.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<em>string</em>) &#8211; Primljeni paket u obliku stringa</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Client.Client.host">
+<code class="descname">host</code><em class="property"> = None</em><a class="headerlink" href="#Client.Client.host" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">host: Ip adresa servera</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Client.Client.onClosing">
+<code class="descname">onClosing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#Client.onClosing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.Client.onClosing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja se poziva prilikom zatvaranja aplikacije. (klikom na &#8220;X&#8221; gumb u gornjem desnom kutu.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Client.Client.port">
+<code class="descname">port</code><em class="property"> = None</em><a class="headerlink" href="#Client.Client.port" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">port: Broj porta servera na koji se klijent povezuje.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Client.Client.privateChatWindows">
+<code class="descname">privateChatWindows</code><em class="property"> = None</em><a class="headerlink" href="#Client.Client.privateChatWindows" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">privateChatWindows: Lista trenutno otvorenih prozora za privatni chat.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">List ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Client.Client.receiveDataFromServerThread">
+<code class="descname">receiveDataFromServerThread</code><em class="property"> = None</em><a class="headerlink" href="#Client.Client.receiveDataFromServerThread" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">receiveDataFromServerThread: Nit(Thread, dretva) koja služi za primanje podataka od servera.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">Thread ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Client.Client.recvFromServer">
+<code class="descname">recvFromServer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#Client.recvFromServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.Client.recvFromServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja prihvaća podatke od servera i poziva &#8220;handlePacket&#8221; metodu ako ima podataka.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Client.Client.sock">
+<code class="descname">sock</code><em class="property"> = None</em><a class="headerlink" href="#Client.Client.sock" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">sock: Klijentov socket</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">socket(AF_INET, SOCK_STREAM)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Client.Client.updateListBox">
+<code class="descname">updateListBox</code><span class="sig-paren">(</span><em>users</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#Client.updateListBox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.Client.updateListBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja služi za ažuriranje liste online klijenata.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>users</strong> (<em>string</em>) &#8211; Lista online klijenata primljena od servera u obliku stringa.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Client.Client.username">
+<code class="descname">username</code><em class="property"> = None</em><a class="headerlink" href="#Client.Client.username" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">username: Korisničko ime klijenta</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">string</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Client.PrivateWindow">
+<em class="property">class </em><code class="descclassname">Client.</code><code class="descname">PrivateWindow</code><span class="sig-paren">(</span><em>master</em>, <em>client</em>, <em>windowTitle</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#PrivateWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.PrivateWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Klasa &#8220;PrivateWindow&#8221; služi za privatan chat između 2 korisnika.
+Dvostrukim klikom na nekog od korisnika u listi online korisnika otvara se ovaj prozor.
+Klijent također ima listu u koju sprema sve trenutno otvorene private prozore ( kako biste sa jednim klijentom mogli komunicirati
+kroz samo 1 privatni prozor).</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="#Client.PrivateWindow.master" title="Client.PrivateWindow.master"><strong>master</strong></a> &#8211; Master prozor za ovaj prozor ( zatvaranjem master prozora zatvaraju se i svi privatni prozori. )</li>
+<li><a class="reference internal" href="#Client.PrivateWindow.client" title="Client.PrivateWindow.client"><strong>client</strong></a> &#8211; Objekt klase &#8220;Client&#8221; definirane u istom file-u.</li>
+<li><a class="reference internal" href="#Client.PrivateWindow.windowTitle" title="Client.PrivateWindow.windowTitle"><strong>windowTitle</strong></a> &#8211; Naslov privatnog prozora</li>
+<li><a class="reference internal" href="#Client.PrivateWindow.txtReceive" title="Client.PrivateWindow.txtReceive"><strong>txtReceive</strong></a> &#8211; Tekstualno polje ( za primljene privatne poruke od određenog korisnika )</li>
+<li><a class="reference internal" href="#Client.PrivateWindow.txtInput" title="Client.PrivateWindow.txtInput"><strong>txtInput</strong></a> &#8211; Tekstualno polje ( za unos privatne poruke )</li>
+<li><a class="reference internal" href="#Client.PrivateWindow.btnSend" title="Client.PrivateWindow.btnSend"><strong>btnSend</strong></a> &#8211; Button(gumb) ( za slanje privatne poruke )</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="Client.PrivateWindow.appendMsg">
+<code class="descname">appendMsg</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#PrivateWindow.appendMsg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.PrivateWindow.appendMsg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja služi za dodavanje teksta u &#8220;txtReceive&#8221; tekstualno polje.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<em>string ili None</em>) &#8211; Poruka koju želimo dodati u tekstualno polje.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Client.PrivateWindow.btnSend">
+<code class="descname">btnSend</code><em class="property"> = None</em><a class="headerlink" href="#Client.PrivateWindow.btnSend" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">btnSend: Button(gumb) ( za slanje privatne poruke )</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tkinter.Button ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Client.PrivateWindow.btnSend_click">
+<code class="descname">btnSend_click</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#PrivateWindow.btnSend_click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.PrivateWindow.btnSend_click" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja se poziva klikom na &#8220;btnSend&#8221; gumb unutar privatnog prozora.
+Ako tekst nije unešen u tekstualno polje &#8220;txtInput&#8221; metoda će jednostavno return-ati,
+u suprotnom pokušava poslati privatnu poruku.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raise:</th><td class="field-body">socket.error</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Client.PrivateWindow.client">
+<code class="descname">client</code><em class="property"> = None</em><a class="headerlink" href="#Client.PrivateWindow.client" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">client: Objekt klase &#8220;Client&#8221; definirane u istom file-u.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">Client.Client ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Client.PrivateWindow.master">
+<code class="descname">master</code><em class="property"> = None</em><a class="headerlink" href="#Client.PrivateWindow.master" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">master: Master prozor za ovaj prozor ( zatvaranjem master prozora zatvaraju se i svi privatni prozori. )</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tkinter.Tk ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Client.PrivateWindow.onClosing">
+<code class="descname">onClosing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#PrivateWindow.onClosing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.PrivateWindow.onClosing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja se poziva kada klijent zatvori privatni prozor (kada pritisne &#8220;X&#8221; u gornjem desnom kutu).
+Uništava privatni prozor, i izbacuje ga iz klijentove liste otvorenih privatnih chat prozora.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Client.PrivateWindow.txtInput">
+<code class="descname">txtInput</code><em class="property"> = None</em><a class="headerlink" href="#Client.PrivateWindow.txtInput" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">txtInput: Tekstualno polje ( za unos privatne poruke )</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tkinter.Text ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Client.PrivateWindow.txtReceive">
+<code class="descname">txtReceive</code><em class="property"> = None</em><a class="headerlink" href="#Client.PrivateWindow.txtReceive" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">txtReceive: Tekstualno polje ( za primljene privatne poruke od određenog korisnika )</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tkinter.Text ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Client.PrivateWindow.windowTitle">
+<code class="descname">windowTitle</code><em class="property"> = None</em><a class="headerlink" href="#Client.PrivateWindow.windowTitle" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">windowTitle: Naslov privatnog prozora. (oblika: username:ip:port)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">string ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="Client.main">
+<code class="descclassname">Client.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Client.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Client.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main metoda Client skripte.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to Client&#8217;s documentation!</a></li>
+      <li>Next: <a href="clientPublicWindowSetup.html" title="next chapter">clientPublicWindowSetup module</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Client.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Željko Krnjić.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/Client.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,546 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Client &mdash; Client  documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Client  documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Client</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Client aplikacija služi klijentima za povezivanje na TCP server i razmjenu poruka.</span>
+<span class="sd">Klijenti mogu koristiti privatni ili javni chat.</span>
+<span class="sd">Dvostrukim klikom na nekog od korisnika iz liste otvara se novi prozor koji</span>
+<span class="sd">omogućava privatan chat između ta dva korisnika.</span>
+
+<span class="sd">|</span>
+<span class="sd">|</span>
+<span class="sd">|</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">socket</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">tkinter</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">tkinter.messagebox</span>
+
+
+<div class="viewcode-block" id="PrivateWindow"><a class="viewcode-back" href="../Client.html#Client.PrivateWindow">[docs]</a><span class="k">class</span> <span class="nc">PrivateWindow</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Klasa &quot;PrivateWindow&quot; služi za privatan chat između 2 korisnika.</span>
+<span class="sd">    Dvostrukim klikom na nekog od korisnika u listi online korisnika otvara se ovaj prozor.</span>
+<span class="sd">    Klijent također ima listu u koju sprema sve trenutno otvorene private prozore ( kako biste sa jednim klijentom mogli komunicirati</span>
+<span class="sd">    kroz samo 1 privatni prozor).</span>
+
+<span class="sd">    |</span>
+
+<span class="sd">    :ivar master: Master prozor za ovaj prozor ( zatvaranjem master prozora zatvaraju se i svi privatni prozori. )</span>
+<span class="sd">    :ivar client: Objekt klase &quot;Client&quot; definirane u istom file-u.</span>
+<span class="sd">    :ivar windowTitle: Naslov privatnog prozora</span>
+<span class="sd">    :ivar txtReceive: Tekstualno polje ( za primljene privatne poruke od određenog korisnika )</span>
+<span class="sd">    :ivar txtInput: Tekstualno polje ( za unos privatne poruke )</span>
+<span class="sd">    :ivar btnSend: Button(gumb) ( za slanje privatne poruke )</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="n">master</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: master: Master prozor za ovaj prozor ( zatvaranjem master prozora zatvaraju se i svi privatni prozori. )</span>
+<span class="sd">    :type: tkinter.Tk ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: client: Objekt klase &quot;Client&quot; definirane u istom file-u.</span>
+<span class="sd">    :type: Client.Client ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">windowTitle</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: windowTitle: Naslov privatnog prozora. (oblika: username:ip:port)</span>
+<span class="sd">    :type: string ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">txtReceive</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: txtReceive: Tekstualno polje ( za primljene privatne poruke od određenog korisnika )</span>
+<span class="sd">    :type: tkinter.Text ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">txtInput</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: txtInput: Tekstualno polje ( za unos privatne poruke )</span>
+<span class="sd">    :type: tkinter.Text ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">btnSend</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: btnSend: Button(gumb) ( za slanje privatne poruke )</span>
+<span class="sd">    :type: tkinter.Button ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">windowTitle</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Konstruktor klase PrivateWindow</span>
+
+<span class="sd">        :param master: Master prozor za ovaj prozor ( zatvaranjem master prozora zatvaraju se i svi privatni prozori. )</span>
+<span class="sd">        :type master: tkinter.Tk ili None</span>
+<span class="sd">        :param client: Objekt klase &quot;Client&quot; definirane u istom file-u.</span>
+<span class="sd">        :type client: Client.Client ili None</span>
+<span class="sd">        :param windowTitle: Naslov privatnog prozora</span>
+<span class="sd">        :type windowTitle: string</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">master</span> <span class="o">=</span> <span class="n">master</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">windowTitle</span> <span class="o">=</span> <span class="n">windowTitle</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">Toplevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">windowTitle</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">protocol</span><span class="p">(</span><span class="s">&quot;WM_DELETE_WINDOW&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onClosing</span><span class="p">)</span>
+
+        <span class="c"># --------------- Kreiranje private window GUI-a -----------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnSend</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s">&quot;Send&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">btnSend_click</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">DISABLED</span><span class="p">)</span>
+
+        <span class="c"># --------------- Crtanje private window prozora ------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnSend</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="PrivateWindow.btnSend_click"><a class="viewcode-back" href="../Client.html#Client.PrivateWindow.btnSend_click">[docs]</a>    <span class="k">def</span> <span class="nf">btnSend_click</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja se poziva klikom na &quot;btnSend&quot; gumb unutar privatnog prozora.</span>
+<span class="sd">        Ako tekst nije unešen u tekstualno polje &quot;txtInput&quot; metoda će jednostavno return-ati,</span>
+<span class="sd">        u suprotnom pokušava poslati privatnu poruku.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        :raise: socket.error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">END</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s">&quot;privateMessage|&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">windowTitle</span> <span class="o">+</span> <span class="s">&quot;|&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">username</span> <span class="o">+</span><span class="s">&quot;:&quot;</span><span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">addr</span> <span class="o">+</span> <span class="s">&quot;|&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">END</span><span class="p">))</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">tkinter</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s">&quot;Error&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">END</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PrivateWindow.appendMsg"><a class="viewcode-back" href="../Client.html#Client.PrivateWindow.appendMsg">[docs]</a>    <span class="k">def</span> <span class="nf">appendMsg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja služi za dodavanje teksta u &quot;txtReceive&quot; tekstualno polje.</span>
+
+<span class="sd">        :param msg: Poruka koju želimo dodati u tekstualno polje.</span>
+<span class="sd">        :type msg: string ili None</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">NORMAL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">END</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">DISABLED</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PrivateWindow.onClosing"><a class="viewcode-back" href="../Client.html#Client.PrivateWindow.onClosing">[docs]</a>    <span class="k">def</span> <span class="nf">onClosing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja se poziva kada klijent zatvori privatni prozor (kada pritisne &quot;X&quot; u gornjem desnom kutu).</span>
+<span class="sd">        Uništava privatni prozor, i izbacuje ga iz klijentove liste otvorenih privatnih chat prozora.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">privateChatWindows</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">w</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">privateChatWindows</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+</div></div>
+<div class="viewcode-block" id="Client"><a class="viewcode-back" href="../Client.html#Client.Client">[docs]</a><span class="k">class</span> <span class="nc">Client</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Klasa &quot;Client&quot; omogućava korisniku unos korisničkog imena i povezivanja na TCP server.</span>
+<span class="sd">    Ako je povezivanje uspjelo korisnik može pisati javne poruke, i otvarati prozore za privatan chat sa ostalim</span>
+<span class="sd">    online klijentima.</span>
+
+<span class="sd">    |</span>
+<span class="sd">    |</span>
+
+<span class="sd">    :ivar host: Ip adresa servera na koji se klijent povezuje</span>
+<span class="sd">    :ivar port: Broj porta servera na koji se klijent povezuje</span>
+<span class="sd">    :ivar privateChatWindows: Lista trenutno otvorenih privatnih prozora</span>
+<span class="sd">    :ivar receiveDataFromServerThread: Nit(Thread, dretva) za primanje podataka od servera</span>
+<span class="sd">    :ivar sock: Klijentov socket</span>
+<span class="sd">    :ivar username: Korisničko ime klijenta</span>
+<span class="sd">    :ivar addr: Adresa klijenta</span>
+
+<span class="sd">    |</span>
+<span class="sd">    |</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">host</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: host: Ip adresa servera</span>
+<span class="sd">    :type: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: port: Broj porta servera na koji se klijent povezuje.</span>
+<span class="sd">    :type: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">privateChatWindows</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: privateChatWindows: Lista trenutno otvorenih prozora za privatni chat.</span>
+<span class="sd">    :type: List ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">receiveDataFromServerThread</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: receiveDataFromServerThread: Nit(Thread, dretva) koja služi za primanje podataka od servera.</span>
+<span class="sd">    :type: Thread ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sock</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: sock: Klijentov socket</span>
+<span class="sd">    :type: socket(AF_INET, SOCK_STREAM)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: username: Korisničko ime klijenta</span>
+<span class="sd">    :type: string</span>
+
+<span class="sd">    |</span>
+<span class="sd">    |</span>
+<span class="sd">    |  </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">addr</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: addr: Ip adresa i port klijenta</span>
+<span class="sd">    :type: tuple(string, int) --- tuple(ip, port)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Konstruktor klase Client</span>
+<span class="sd">        Kreira grafičko sučelje, te povezuje klijenta sa serverom ako je to moguće.</span>
+
+<span class="sd">        :param host: Ip servera</span>
+<span class="sd">        :type host: string</span>
+<span class="sd">        :param port: Port servera</span>
+<span class="sd">        :type port: int</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        |</span>
+<span class="sd">        |</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># inicijalizacija članova klase</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">privateChatWindows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receiveDataFromServerThread</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">SOCK_STREAM</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addr</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">Tk</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">&quot;Client&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">protocol</span><span class="p">(</span><span class="s">&quot;WM_DELETE_WINDOW&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onClosing</span><span class="p">)</span>
+        <span class="c"># ------------------ Kreiranje grafickog sucelja --------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lblUsername</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s">&quot;Username: &quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtUsername</span> <span class="o">=</span> <span class="n">Entry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnConnect</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s">&quot;Connect&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">btnConnect_click</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnSend</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s">&quot;Send&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">btnSend_click</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span> <span class="o">=</span> <span class="n">Listbox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListScroll</span> <span class="o">=</span> <span class="n">Scrollbar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListScroll</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span><span class="o">.</span><span class="n">yview</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">yscrollcommand</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">clientsListScroll</span><span class="o">.</span><span class="n">set</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s">&quot;&lt;Double-Button-1&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clientsListBoxEntryOnDblClick</span><span class="p">)</span>
+
+        <span class="c"># ------------- Crtanje grafičkog sučelja -----------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lblUsername</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;E&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtUsername</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;W&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnConnect</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;W&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListScroll</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnSend</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">columnspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">rowconfigure</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">rowconfigure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">rowconfigure</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">rowconfigure</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">columnconfigure</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">columnconfigure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">columnconfigure</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">columnconfigure</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">columnconfigure</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">DISABLED</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Client.btnSend_click"><a class="viewcode-back" href="../Client.html#Client.Client.btnSend_click">[docs]</a>    <span class="k">def</span> <span class="nf">btnSend_click</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja se poziva klikom na &quot;btnSend&quot; gumb unutar prozora za javni chat.</span>
+<span class="sd">        Ako nije unešen nikakav text, metoda će return-ati, u suprotnom pokušava</span>
+<span class="sd">        poslati unešeni tekst kao javnu poruku.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        :raise: socket.error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">END</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s">&quot;publicMessage|&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">txtUsername</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">+</span><span class="s">&quot; says: &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">END</span><span class="p">))</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">tkinter</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s">&quot;Error&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">END</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Client.btnConnect_click"><a class="viewcode-back" href="../Client.html#Client.Client.btnConnect_click">[docs]</a>    <span class="k">def</span> <span class="nf">btnConnect_click</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja se poziva klikom na &quot;btnConnect&quot; gumb unutar prozora za javni chat.</span>
+<span class="sd">        Metoda će return-ati ako nije unešeno korisničko ime, u suprotnom pokušava povezati klijenta</span>
+<span class="sd">        sa serverom.</span>
+<span class="sd">        Ako je povezivanje uspješno serveru se šalje &quot;clientConnected&quot; paket koji sadrži više podataka o novom klijentu</span>
+<span class="sd">        radi ažuriranja liste klijenata, te se pokreće klijentova nit za primanje podataka od servera(receiveDataFromServerThread).</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        :raise: socket.error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">txtUsername</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">txtUsername</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">tkinter</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s">&quot;Error&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">appendMsg</span><span class="p">(</span><span class="s">&quot;Povezivanje sa serverom uspjesno!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="c"># start receiving data from server</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receiveDataFromServerThread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">recvFromServer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receiveDataFromServerThread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receiveDataFromServerThread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">addr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">getsockname</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">addr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s">&quot;:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">addr</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">connMsg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s">&quot;clientConnected|&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">)</span> <span class="o">+</span><span class="s">&quot;:&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">addr</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">connMsg</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+        <span class="k">except</span> <span class="n">error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">tkinter</span><span class="o">.</span><span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s">&quot;Error&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Client.clientsListBoxEntryOnDblClick"><a class="viewcode-back" href="../Client.html#Client.Client.clientsListBoxEntryOnDblClick">[docs]</a>    <span class="k">def</span> <span class="nf">clientsListBoxEntryOnDblClick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja se poziva dvostrukim klikom na nekog od online klijenata iz liste online klijenata.</span>
+<span class="sd">        Metoda provjerava je li već otvoren privatni prozor sa odabranim klijentom, te ako jeste stavi fokus na taj prozor,</span>
+<span class="sd">        a ako nije otvara novi prozor za privatni chat sa odabranim klijentom i sprema taj prozor u listu privatnih prozora.</span>
+
+<span class="sd">        :param event: Event</span>
+<span class="sd">        :type event: Event</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">widget</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">widget</span>
+        <span class="n">selected</span> <span class="o">=</span> <span class="n">widget</span><span class="o">.</span><span class="n">curselection</span><span class="p">()</span>
+        <span class="n">selectedValue</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">widget</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">selected</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="c">#pw = PrivateWindow(self.root, self, selectedValue)</span>
+        <span class="k">for</span> <span class="n">privateWindow</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">privateChatWindows</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">selectedValue</span> <span class="o">==</span> <span class="n">privateWindow</span><span class="o">.</span><span class="n">windowTitle</span><span class="p">:</span>
+                <span class="k">return</span>
+        <span class="n">pw</span> <span class="o">=</span> <span class="n">PrivateWindow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">selectedValue</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">privateChatWindows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pw</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Client.handlePacket"><a class="viewcode-back" href="../Client.html#Client.Client.handlePacket">[docs]</a>    <span class="k">def</span> <span class="nf">handlePacket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja obrađuje paket primljen od strane servera.</span>
+
+<span class="sd">        Primljeni paket je string oblika: tipPaketa|tekst korisničke poruke</span>
+
+<span class="sd">        U slučaju privatne poruke paket ima oblik: tipPaketa|podatciOIzvorištu|podatciOOdredištu|tekst korisničke poruke</span>
+
+<span class="sd">        Primljena poruka rastavlja se na svako pojavljivanje znaka &#39;|&#39;, i tako se dobiva</span>
+<span class="sd">        lista stringova.</span>
+
+<span class="sd">        npr. poruka = privateMessage|zeljko:127.0.0.1:5678|mario:127.0.0.1:8765|Tekst korisničke poruke</span>
+<span class="sd">        =&gt;</span>
+<span class="sd">        rastavljenaPoruka = [&quot;privateMessage&quot;, &quot;zeljko:127.0.0.1:5678&quot;, &quot;mario:127.0.0.1:8765&quot;, &quot;Tekst korisničke poruke&quot;]</span>
+
+<span class="sd">        U rastavljenoj poruci (u listi) na prvom mjestu (indeksu 0) nalazi se tip paketa.</span>
+<span class="sd">        Na drugom mjestu (index 1) nalaze se podatci o izvorištu, a na</span>
+<span class="sd">        trećem mjestu (index 2) nalaze se podatci o odredištu.</span>
+<span class="sd">        Svi ostali elementi liste su korisnička poruka. (indeksi od 3 pa nadalje)</span>
+
+<span class="sd">        Poruka se zatim ponovno sastavlja ali bez podataka o tipu paketa, izvorištu i odredištu, i to opet</span>
+<span class="sd">        na svako pojavljivanje znaka &#39;|&#39;. (jer je korisnik mogao unijeti znak &#39;|&#39; unutar svoje poruke)</span>
+
+<span class="sd">        sastavljenaPoruka = &#39;|&#39;.join(rastavljenaPoruka[3:]) ==&gt; spoji rastavljenu poruku znakom &#39;|&#39;, počevši od</span>
+<span class="sd">        indeksa broj 3 pa nadalje.</span>
+
+<span class="sd">        :param msg: Primljeni paket u obliku stringa</span>
+<span class="sd">        :type msg: string</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s">&#39;|&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;updateListBox&quot;</span><span class="p">:</span>
+            <span class="n">users</span> <span class="o">=</span> <span class="s">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">updateListBox</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">users</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;publicMessage&quot;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="s">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">appendMsg</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;privateMessage&quot;</span><span class="p">:</span>
+            <span class="n">sender</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="c"># sender data</span>
+            <span class="n">senderUsername</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="s">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span> <span class="c"># msg</span>
+            <span class="k">for</span> <span class="n">privateWindow</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">privateChatWindows</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">privateWindow</span><span class="o">.</span><span class="n">windowTitle</span> <span class="o">==</span> <span class="n">sender</span><span class="p">:</span>
+                    <span class="n">privateWindow</span><span class="o">.</span><span class="n">appendMsg</span><span class="p">(</span><span class="n">senderUsername</span> <span class="o">+</span> <span class="s">&quot; says: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+                    <span class="k">return</span>
+            <span class="n">pw</span> <span class="o">=</span> <span class="n">PrivateWindow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">sender</span><span class="p">)</span>
+            <span class="n">pw</span><span class="o">.</span><span class="n">appendMsg</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">privateChatWindows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pw</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="s">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">appendMsg</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Client.updateListBox"><a class="viewcode-back" href="../Client.html#Client.Client.updateListBox">[docs]</a>    <span class="k">def</span> <span class="nf">updateListBox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">users</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja služi za ažuriranje liste online klijenata.</span>
+
+<span class="sd">        :param users: Lista online klijenata primljena od servera u obliku stringa.</span>
+<span class="sd">        :type users: string</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">users</span><span class="p">,</span> <span class="s">&#39;|&#39;</span><span class="p">)</span>
+        <span class="n">addr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">getsockname</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">u</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">user</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">+</span><span class="s">&quot;:&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">addr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span><span class="s">&quot;:&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">addr</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">END</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Client.recvFromServer"><a class="viewcode-back" href="../Client.html#Client.Client.recvFromServer">[docs]</a>    <span class="k">def</span> <span class="nf">recvFromServer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja prihvaća podatke od servera i poziva &quot;handlePacket&quot; metodu ako ima podataka.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handlePacket</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Client.appendMsg"><a class="viewcode-back" href="../Client.html#Client.Client.appendMsg">[docs]</a>    <span class="k">def</span> <span class="nf">appendMsg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja služi za dodavanje teksta u &quot;txtReceive&quot; tekstualno polje (poruke javnog chat-a).</span>
+
+<span class="sd">        :param msg: Poruka koju treba dodati.</span>
+<span class="sd">        :type msg: string</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">NORMAL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">END</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">DISABLED</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Client.onClosing"><a class="viewcode-back" href="../Client.html#Client.Client.onClosing">[docs]</a>    <span class="k">def</span> <span class="nf">onClosing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja se poziva prilikom zatvaranja aplikacije. (klikom na &quot;X&quot; gumb u gornjem desnom kutu.)</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+</div></div>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../Client.html#Client.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main metoda Client skripte.</span>
+
+<span class="sd">    :return: None</span>
+<span class="sd">    :rtype: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">6666</span><span class="p">)</span>
+
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Željko Krnjić.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

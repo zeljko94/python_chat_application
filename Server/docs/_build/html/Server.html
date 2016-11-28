@@ -1,0 +1,655 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Server module &mdash; Server  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Server  documentation" href="index.html" />
+    <link rel="next" title="serverWindowSetup module" href="serverWindowSetup.html" />
+    <link rel="prev" title="Welcome to Server’s documentation!" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-Server">
+<span id="server-module"></span><h1>Server module<a class="headerlink" href="#module-Server" title="Permalink to this headline">¶</a></h1>
+<p>Server aplikacija služi za pokretanje TCP servera na određenom portu i ip adresi.
+Server čeka i prihvaća nadolazeće konekcije od strane klijenata.
+Trenutno spojene klijente sprema u listu.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+<dl class="class">
+<dt id="Server.Client">
+<em class="property">class </em><code class="descclassname">Server.</code><code class="descname">Client</code><span class="sig-paren">(</span><em>sock</em>, <em>addr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Server.html#Client"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Server.Client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p><strong>Klasa &#8220;Client&#8221; služi serveru kao model za rukovanje klijentima.
+Kada server prihvati klijenta, kreira novi objekt klase &#8220;Client&#8221; i sprema ga u
+listu spojenih klijenata.</strong></p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="#Server.Client.sock" title="Server.Client.sock"><strong>sock</strong></a> &#8211; Klijentov socket</li>
+<li><a class="reference internal" href="#Server.Client.addr" title="Server.Client.addr"><strong>addr</strong></a> &#8211; Klijentova adresa</li>
+<li><a class="reference internal" href="#Server.Client.username" title="Server.Client.username"><strong>username</strong></a> &#8211; Korisničko ime klijenta</li>
+<li><a class="reference internal" href="#Server.Client.handleClientThread" title="Server.Client.handleClientThread"><strong>handleClientThread</strong></a> &#8211; Nit za rukovanje klijentom</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+<p><strong>Konstruktor klase &#8220;Client&#8221;:</strong></p>
+<p><strong>__init__(self, sock, addr)</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sock</strong> (<em>socket</em>) &#8211; Socket prihvaćenog klijenta</li>
+<li><strong>addr</strong> (<em>tuple(ip, port)</em>) &#8211; Adresa prihvaćenog klijenta</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">None</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="Server.Client.addr">
+<code class="descname">addr</code><em class="property"> = None</em><a class="headerlink" href="#Server.Client.addr" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">addr: Klijentova adresa tuple(ip, port)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">addr: tuple(string, int)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Client.handleClientThread">
+<code class="descname">handleClientThread</code><em class="property"> = None</em><a class="headerlink" href="#Server.Client.handleClientThread" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">handleClientThread: Nit(Thread) za rukovanje klijentom - type: Thread ili None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">Thread ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Client.sock">
+<code class="descname">sock</code><em class="property"> = None</em><a class="headerlink" href="#Server.Client.sock" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">sock: Klijentov socket</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">sock: socket(AF_INET, SOCK_STREAM)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Client.username">
+<code class="descname">username</code><em class="property"> = ''</em><a class="headerlink" href="#Server.Client.username" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">username: Korisničko ime klijenta - type: string</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">username: string</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Server.Server">
+<em class="property">class </em><code class="descclassname">Server.</code><code class="descname">Server</code><span class="sig-paren">(</span><em>host</em>, <em>port</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Server.html#Server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Server.Server" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p><strong>Klasa &#8220;Server&#8221;
+Kreira grafičko sučelje, pokreće server na ip adresi i portu,
+te obrađuje podatke koje primi od klijenata.</strong></p>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="#Server.Server.host" title="Server.Server.host"><strong>host</strong></a> &#8211; Ip adresa servera</li>
+<li><a class="reference internal" href="#Server.Server.port" title="Server.Server.port"><strong>port</strong></a> &#8211; Port servera</li>
+<li><a class="reference internal" href="#Server.Server.listener" title="Server.Server.listener"><strong>listener</strong></a> &#8211; Listener socket</li>
+<li><a class="reference internal" href="#Server.Server.clients" title="Server.Server.clients"><strong>clients</strong></a> &#8211; Lista klijenata</li>
+<li><a class="reference internal" href="#Server.Server.acceptClientsThread" title="Server.Server.acceptClientsThread"><strong>acceptClientsThread</strong></a> &#8211; Nit za prihvaćanje klijenata</li>
+<li><a class="reference internal" href="#Server.Server.txtReceive" title="Server.Server.txtReceive"><strong>txtReceive</strong></a> &#8211; Tekstualno polje (za poruke sa javnog chat-a)</li>
+<li><a class="reference internal" href="#Server.Server.txtInput" title="Server.Server.txtInput"><strong>txtInput</strong></a> &#8211; Tekstualno polje (za unos poruke za javni chat)</li>
+<li><a class="reference internal" href="#Server.Server.btnSend" title="Server.Server.btnSend"><strong>btnSend</strong></a> &#8211; Button(tipka) za slanje poruke u javnom chat-u</li>
+<li><a class="reference internal" href="#Server.Server.clientsListBox" title="Server.Server.clientsListBox"><strong>clientsListBox</strong></a> &#8211; ListBox koji prikazuje online korisnike</li>
+<li><a class="reference internal" href="#Server.Server.clientsListScroll" title="Server.Server.clientsListScroll"><strong>clientsListScroll</strong></a> &#8211; Scrollbar za kretanje kroz listu online korisnika</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+<p><strong>Konstruktor klase &#8220;Server&#8221;</strong></p>
+<p><strong>__init__(self, host, port)</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>host</strong> (<em>string</em>) &#8211; Adresa servera</li>
+<li><strong>port</strong> (<em>int</em>) &#8211; Port servera</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">None</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+<dl class="method">
+<dt id="Server.Server.acceptClients">
+<code class="descname">acceptClients</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Server.html#Server.acceptClients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Server.Server.acceptClients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda se pokreće u posebnoj niti (Thread) unutar konstruktora, stoga server može obrađivati podatke
+i prihvaćati konekcije odjednom.
+Metoda vrti beskonačnu petlju i prihvaća konekcije prema serveru ako ih ima, i za svakog prihvaćenog klijenta
+kreira novi objekt klase &#8220;Client&#8221;, pokreće nit za rukovanje tim korisnikom(handleClientThread), te dodaje
+objekt u listu trenutno povezanih klijenata.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Server.acceptClientsThread">
+<code class="descname">acceptClientsThread</code><em class="property"> = None</em><a class="headerlink" href="#Server.Server.acceptClientsThread" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">acceptClientsThread: Nit unutar koje listener socket prihvaća konekcije u beskonačnoj petlji.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">Thread ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Server.Server.appendMsg">
+<code class="descname">appendMsg</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Server.html#Server.appendMsg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Server.Server.appendMsg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja služi za dodavanje tekta u &#8220;txtReceive&#8221; tekstualno polje.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> &#8211; Tekst koji želimo dodati u &#8220;txtReceive&#8221; tekstualno polje.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">string</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Server.Server.broadcast">
+<code class="descname">broadcast</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Server.html#Server.broadcast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Server.Server.broadcast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja služi za serveru za odašiljanje poruke svim trenutno povezanim klijentima.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<em>string</em>) &#8211; Poruka koju želimo poslati</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raise:</th><td class="field-body">socket.error</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Server.btnSend">
+<code class="descname">btnSend</code><em class="property"> = None</em><a class="headerlink" href="#Server.Server.btnSend" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">btnSend: Button(tipka) za slanje poruke u javni chat</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tkinter.Button ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Server.Server.btnSend_click">
+<code class="descname">btnSend_click</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Server.html#Server.btnSend_click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Server.Server.btnSend_click" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja se poziva kada se klikne na button &#8220;btnSend&#8221; ( koji sluzi za slanje poruka u javnom chat-u )
+Ako nije unešen nikakav tekst u &#8220;txtInput&#8221; polje metoda jednostavno return-a,
+u suprotnom server broadcast-a unešenu poruku svim online klijentima.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Server.clients">
+<code class="descname">clients</code><em class="property"> = []</em><a class="headerlink" href="#Server.Server.clients" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">clients: Lista trenutno povezanih klijenata</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">List</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Server.clientsListBox">
+<code class="descname">clientsListBox</code><em class="property"> = None</em><a class="headerlink" href="#Server.Server.clientsListBox" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">clientsListBox: ListBox za prikaz online korisnika</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tkinter.Listbox ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Server.clientsListScroll">
+<code class="descname">clientsListScroll</code><em class="property"> = None</em><a class="headerlink" href="#Server.Server.clientsListScroll" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">clientsListScroll: Scrollbar za kretanje kroz listu online korisnika</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tkinter.Scrollbar ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Server.Server.handleClient">
+<code class="descname">handleClient</code><span class="sig-paren">(</span><em>conn</em>, <em>addr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Server.html#Server.handleClient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Server.Server.handleClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prihvaća podatke od klijenta ako ih ima,
+te ih u obliku stringa predaje funkciji handlePacket koja nadalje obrađuje podatkovni paket.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>conn</strong> (<em>socket(AF_INET, SOCK_STREAM)</em>) &#8211; Klijentov socket</li>
+<li><strong>addr</strong> (<em>tuple(string, ip) npr. (&#8220;127.0.0.1&#8221;, 6666)</em>) &#8211; Klijentova adresa</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">None</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Server.Server.handlePacket">
+<code class="descname">handlePacket</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Server.html#Server.handlePacket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Server.Server.handlePacket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja služi serveru za obrađivanje podatkovih paketa primljenih od strane klijenata.
+Server razlikuje 5 tipova paketa:</p>
+<ol class="arabic simple">
+<li>clientConnected - za obradu tek povezanih klijenata ( dodavanje u listu online korisnika i sl.)</li>
+</ol>
+<p>2. clientDisconnected - za obradu klijenata koji su napustili chat (brisanje iz liste korisnika, zatvaranje klijentovog
+socketa i sl.)</p>
+<p>3. publicMessage - za obradu javnih poruka (proslijeđivanje javne poruke primljene od nekog klijenta
+svim ostalim online klijentima)</p>
+<ol class="arabic simple" start="4">
+<li>privateMessage - za obradu privatnih poruka (proslijeđivanje privatne poruke od jednog klijenta ka drugom)</li>
+<li>error - za obradu pogrešaka (server klijentu javlja da je došlo do neke pogreške. npr. Korisničko ime je zauzeto i sl.)</li>
+</ol>
+<p>Primljena poruka je oblika: tipPaketa|Klijentova poruka serveru.</p>
+<p>Privatna poruka je oblika: tipPaketa|podatciOPošiljatelju|podatciOPrimatelju|Klijentova poruka.</p>
+<p>Metoda rastavlja primljenu poruku na svako pojavljivanje znaka &#8216;|&#8217;, te tako dobiva listu
+stringova.</p>
+<dl class="docutils">
+<dt>npr. poruka = privateMessage|zeljko:127.0.0.1:5678|mario:127.0.0.1:8765|Ovo je moja poruka</dt>
+<dd>=&gt;
+rastavljenaPoruka = [&#8220;privateMessage&#8221;, &#8220;zeljko:127.0.0.1:5678&#8221;, &#8220;mario:127.0.0.1:8765&#8221;, &#8220;Ovo je moja poruka&#8221;]</dd>
+</dl>
+<p>U rastavljenoj poruci na prvom mjestu (indexu 0) uvijek se nalazi tip poruke.</p>
+<p>npr. print(rastavljenaPoruka[0]) ispisati ce string &#8220;privateMessage&#8221;</p>
+<p>Nakon što server odredi tip paketa, ponovno spaja rastavljenu poruku sa znakom &#8216;|&#8217; (jer korisnik unutar svoje
+poruke može unijeti znak &#8216;|&#8217;).
+Server iz ponovno sastavljene poruke odbacuje tip paketa i podatke o odredištu i izvorištu,
+i ostane mu samo tekst koji je user unijeo, i u ovoj situaciji server zna što treba napraviti sa danom porukom.</p>
+<p>sastavljenaPoruka = &#8216;|&#8217;.join(rastavljenaPoruka[3:]) &#8211;&gt; spoji sve stringove iz liste rastavljenih poruka, počevši
+od 3. indexa  i poveži ih znakom &#8216;|&#8217;.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<em>string</em>) &#8211; Primljeni podatci u obliku stringa</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Server.host">
+<code class="descname">host</code><em class="property"> = ''</em><a class="headerlink" href="#Server.Server.host" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">host: Ip adresa servera</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Server.listener">
+<code class="descname">listener</code><em class="property"> = None</em><a class="headerlink" href="#Server.Server.listener" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">listener: Socket koji čeka i prihvaća konekcije</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">socket(AF_INET, SOCK_STREAM)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Server.Server.onClosing">
+<code class="descname">onClosing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Server.html#Server.onClosing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Server.Server.onClosing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja se poziva kada korisnik zatvori aplikaciju. (Pritisak na &#8220;X&#8221; gumb u gornjem desnom kutu)&#8221;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Server.port">
+<code class="descname">port</code><em class="property"> = 0</em><a class="headerlink" href="#Server.Server.port" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">port: Port servera</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Server.Server.sendListBoxUpdateRequest">
+<code class="descname">sendListBoxUpdateRequest</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Server.html#Server.sendListBoxUpdateRequest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Server.Server.sendListBoxUpdateRequest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda kojom server šalje klijentima poruku da je došlo do izmjene liste klijenata.
+Server šalje klijentima poruku oblika: updateListBox|username1:ip1:port1|username2:ip2:port2|usernameN:ipN:portN
+Kada klijent primi ovu poruku, on će ju rastaviti na svako pojavljivanje znaka &#8216;|&#8217;, i tako
+će dobiti ažuriranu listu trenutno online korisnika.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Server.txtInput">
+<code class="descname">txtInput</code><em class="property"> = None</em><a class="headerlink" href="#Server.Server.txtInput" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">txtInput: Tekstualno polje (za unos poruke za javni chat)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tkinter.Text ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Server.Server.txtReceive">
+<code class="descname">txtReceive</code><em class="property"> = None</em><a class="headerlink" href="#Server.Server.txtReceive" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Ivar:</th><td class="field-body">txtReceive: Tekstualno polje (za poruke sa javnog chat-a)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tkinter.Text ili None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Server.Server.updateListBox">
+<code class="descname">updateListBox</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Server.html#Server.updateListBox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Server.Server.updateListBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metoda koja služi za ažuriranje liste online klijenata.
+Ova metoda se poziva kada server prihvati novog klijenta, ili kada
+neki od klijenata napusti chat.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="Server.main">
+<code class="descclassname">Server.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Server.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Server.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main metoda Server skripte.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to Server&#8217;s documentation!</a></li>
+      <li>Next: <a href="serverWindowSetup.html" title="next chapter">serverWindowSetup module</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Server.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Željko Krnjić.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/Server.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

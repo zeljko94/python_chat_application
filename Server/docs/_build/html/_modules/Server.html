@@ -1,0 +1,538 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Server &mdash; Server  documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Server  documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Server</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Server aplikacija služi za pokretanje TCP servera na određenom portu i ip adresi.</span>
+<span class="sd">Server čeka i prihvaća nadolazeće konekcije od strane klijenata.</span>
+<span class="sd">Trenutno spojene klijente sprema u listu.</span>
+
+<span class="sd">|</span>
+<span class="sd">|</span>
+<span class="sd">|</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">socket</span> <span class="kn">import</span> <span class="o">*</span> <span class="c"># za rad sa socketima</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="o">*</span> <span class="c"># za rad sa nitima (Threads)</span>
+<span class="kn">from</span> <span class="nn">tkinter</span> <span class="kn">import</span> <span class="o">*</span> <span class="c"># biblioteka za GUI</span>
+<span class="kn">import</span> <span class="nn">tkinter.messagebox</span>
+
+
+
+<div class="viewcode-block" id="Client"><a class="viewcode-back" href="../Server.html#Server.Client">[docs]</a><span class="k">class</span> <span class="nc">Client</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    **Klasa &quot;Client&quot; služi serveru kao model za rukovanje klijentima.</span>
+<span class="sd">    Kada server prihvati klijenta, kreira novi objekt klase &quot;Client&quot; i sprema ga u</span>
+<span class="sd">    listu spojenih klijenata.**</span>
+
+<span class="sd">    |</span>
+<span class="sd">    |</span>
+<span class="sd">    :ivar sock: Klijentov socket</span>
+<span class="sd">    :ivar addr: Klijentova adresa</span>
+<span class="sd">    :ivar username: Korisničko ime klijenta</span>
+<span class="sd">    :ivar handleClientThread: Nit za rukovanje klijentom</span>
+
+<span class="sd">    |</span>
+<span class="sd">    |</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">sock</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: sock: Klijentov socket</span>
+<span class="sd">    :type: sock: socket(AF_INET, SOCK_STREAM)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">addr</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: addr: Klijentova adresa tuple(ip, port)</span>
+<span class="sd">    :type: addr: tuple(string, int)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: username: Korisničko ime klijenta - type: string</span>
+<span class="sd">    :type: username: string</span>
+
+<span class="sd">    |</span>
+<span class="sd">    |</span>
+<span class="sd">    |</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">handleClientThread</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: handleClientThread: Nit(Thread) za rukovanje klijentom - type: Thread ili None</span>
+<span class="sd">    :type: Thread ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sock</span><span class="p">,</span> <span class="n">addr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        **Konstruktor klase &quot;Client&quot;:**</span>
+
+<span class="sd">        **__init__(self, sock, addr)**</span>
+
+
+<span class="sd">        :param sock: Socket prihvaćenog klijenta</span>
+<span class="sd">        :type sock: socket</span>
+<span class="sd">        :param addr: Adresa prihvaćenog klijenta</span>
+<span class="sd">        :type addr: tuple(ip, port)</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sock</span> <span class="o">=</span> <span class="n">sock</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addr</span> <span class="o">=</span> <span class="n">addr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handleClientThread</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="Server"><a class="viewcode-back" href="../Server.html#Server.Server">[docs]</a><span class="k">class</span> <span class="nc">Server</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    **Klasa &quot;Server&quot;</span>
+<span class="sd">    Kreira grafičko sučelje, pokreće server na ip adresi i portu,</span>
+<span class="sd">    te obrađuje podatke koje primi od klijenata.**</span>
+
+<span class="sd">    |</span>
+<span class="sd">    |</span>
+<span class="sd">    :ivar host: Ip adresa servera</span>
+<span class="sd">    :ivar port: Port servera</span>
+<span class="sd">    :ivar listener: Listener socket</span>
+<span class="sd">    :ivar clients: Lista klijenata</span>
+<span class="sd">    :ivar acceptClientsThread: Nit za prihvaćanje klijenata</span>
+<span class="sd">    :ivar txtReceive: Tekstualno polje (za poruke sa javnog chat-a)</span>
+<span class="sd">    :ivar txtInput: Tekstualno polje (za unos poruke za javni chat)</span>
+<span class="sd">    :ivar btnSend: Button(tipka) za slanje poruke u javnom chat-u</span>
+<span class="sd">    :ivar clientsListBox: ListBox koji prikazuje online korisnike</span>
+<span class="sd">    :ivar clientsListScroll: Scrollbar za kretanje kroz listu online korisnika</span>
+
+<span class="sd">    |</span>
+<span class="sd">    |</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">host</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: host: Ip adresa servera</span>
+<span class="sd">    :type: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: port: Port servera</span>
+<span class="sd">    :type: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">listener</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: listener: Socket koji čeka i prihvaća konekcije</span>
+<span class="sd">    :type: socket(AF_INET, SOCK_STREAM)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">clients</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: clients: Lista trenutno povezanih klijenata</span>
+<span class="sd">    :type: List</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">acceptClientsThread</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: acceptClientsThread: Nit unutar koje listener socket prihvaća konekcije u beskonačnoj petlji.</span>
+<span class="sd">    :type: Thread ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">txtReceive</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: txtReceive: Tekstualno polje (za poruke sa javnog chat-a)</span>
+<span class="sd">    :type: tkinter.Text ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">txtInput</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: txtInput: Tekstualno polje (za unos poruke za javni chat)</span>
+<span class="sd">    :type: tkinter.Text ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">btnSend</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: btnSend: Button(tipka) za slanje poruke u javni chat</span>
+<span class="sd">    :type: tkinter.Button ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">clientsListBox</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: clientsListBox: ListBox za prikaz online korisnika</span>
+<span class="sd">    :type: tkinter.Listbox ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">clientsListScroll</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :ivar: clientsListScroll: Scrollbar za kretanje kroz listu online korisnika</span>
+<span class="sd">    :type: tkinter.Scrollbar ili None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        **Konstruktor klase &quot;Server&quot;**</span>
+
+<span class="sd">        **__init__(self, host, port)**</span>
+
+<span class="sd">        :param host: Adresa servera</span>
+<span class="sd">        :type host: string</span>
+<span class="sd">        :param port: Port servera</span>
+<span class="sd">        :type port: int</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        |</span>
+<span class="sd">        |</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">Tk</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">&quot;Server&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">protocol</span><span class="p">(</span><span class="s">&quot;WM_DELETE_WINDOW&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onClosing</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
+
+        <span class="c"># ---------- Kreiranje GUI-a ----------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">bd</span><span class="o">=</span><span class="s">&quot;2&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">bd</span><span class="o">=</span><span class="s">&quot;2&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnSend</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s">&quot;Send&quot;</span><span class="p">,</span> <span class="n">bd</span><span class="o">=</span><span class="s">&quot;2&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">btnSend_click</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span> <span class="o">=</span> <span class="n">Listbox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span><span class="n">height</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListScroll</span> <span class="o">=</span> <span class="n">Scrollbar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="n">VERTICAL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListScroll</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span><span class="o">.</span><span class="n">yview</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">yscrollcommand</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">clientsListScroll</span><span class="o">.</span><span class="n">set</span><span class="p">)</span>
+
+        <span class="c"># ----------- Crtanje GUI-a -----------------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListScroll</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btnSend</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">columnspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s">&quot;NESW&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">rowconfigure</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">rowconfigure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">rowconfigure</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">rowconfigure</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">columnconfigure</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">columnconfigure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">columnconfigure</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">columnconfigure</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">columnconfigure</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">DISABLED</span><span class="p">)</span> <span class="c"># tekstualno polje za primljene poruke read-only</span>
+        <span class="c"># ------------------------ Kreiranje GUI-a END ---------------------------------------------------------</span>
+
+        <span class="c"># ------------------------ Pokreni server ---------------------------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listener</span> <span class="o">=</span> <span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">SOCK_STREAM</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listener</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listener</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">appendMsg</span><span class="p">(</span><span class="s">&quot;Server pokrenut na: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="c"># ---------------------- Kreni sa prihvatanjem klijenata ---------------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acceptClientsThread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">acceptClients</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acceptClientsThread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acceptClientsThread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">appendMsg</span><span class="p">(</span><span class="s">&quot;Cekam na nadolazece konekcije...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Server.broadcast"><a class="viewcode-back" href="../Server.html#Server.Server.broadcast">[docs]</a>    <span class="k">def</span> <span class="nf">broadcast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja služi za serveru za odašiljanje poruke svim trenutno povezanim klijentima.</span>
+
+
+<span class="sd">        :param msg: Poruka koju želimo poslati</span>
+<span class="sd">        :type msg: string</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        :raise: socket.error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">cl</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c">#tkinter.messagebox.showinfo(&quot;Error&quot;, str(e))</span>
+                <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="Server.acceptClients"><a class="viewcode-back" href="../Server.html#Server.Server.acceptClients">[docs]</a>    <span class="k">def</span> <span class="nf">acceptClients</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda se pokreće u posebnoj niti (Thread) unutar konstruktora, stoga server može obrađivati podatke</span>
+<span class="sd">        i prihvaćati konekcije odjednom.</span>
+<span class="sd">        Metoda vrti beskonačnu petlju i prihvaća konekcije prema serveru ako ih ima, i za svakog prihvaćenog klijenta</span>
+<span class="sd">        kreira novi objekt klase &quot;Client&quot;, pokreće nit za rukovanje tim korisnikom(handleClientThread), te dodaje</span>
+<span class="sd">        objekt u listu trenutno povezanih klijenata.</span>
+
+<span class="sd">        :param: None</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">conn</span><span class="p">,</span> <span class="n">addr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">listener</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">conn</span><span class="p">:</span>
+                <span class="n">newClient</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">addr</span><span class="p">)</span> <span class="c"># kreiranje novog klijenta</span>
+                <span class="n">newClient</span><span class="o">.</span><span class="n">handleClientThread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handleClient</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">newClient</span><span class="o">.</span><span class="n">sock</span><span class="p">,</span><span class="n">newClient</span><span class="o">.</span><span class="n">addr</span><span class="p">))</span>
+                <span class="n">newClient</span><span class="o">.</span><span class="n">handleClientThread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">newClient</span><span class="o">.</span><span class="n">handleClientThread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newClient</span><span class="p">)</span>
+                <span class="c">#self.updateListBox()</span>
+                <span class="c">#self.sendListBoxUpdateRequest()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listener</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Server.handleClient"><a class="viewcode-back" href="../Server.html#Server.Server.handleClient">[docs]</a>    <span class="k">def</span> <span class="nf">handleClient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">addr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prihvaća podatke od klijenta ako ih ima,</span>
+<span class="sd">        te ih u obliku stringa predaje funkciji handlePacket koja nadalje obrađuje podatkovni paket.</span>
+
+<span class="sd">        :param conn: Klijentov socket</span>
+<span class="sd">        :type conn: socket(AF_INET, SOCK_STREAM)</span>
+<span class="sd">        :param addr: Klijentova adresa</span>
+<span class="sd">        :type addr: tuple(string, ip) npr. (&quot;127.0.0.1&quot;, 6666)</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c">#tkinter.messagebox.showinfo(&quot;Error&quot;, str(e))</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+            <span class="c"># ----------------- handle packet -------------------</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handlePacket</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">appendMsg</span><span class="p">(</span><span class="s">&quot;Klijent je napustio chat...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="c"># izbaci klijena koji je napustio chat iz liste klijenata</span>
+        <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cl</span><span class="o">.</span><span class="n">sock</span> <span class="o">==</span> <span class="n">conn</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">cl</span><span class="p">)</span>
+        <span class="c"># ---- update-aj listbox koji prikazuje trenutno povezane klijente</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateListBox</span><span class="p">()</span>
+        <span class="c"># ---- posalji klijentima zahtjev za update liste klijenata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sendListBoxUpdateRequest</span><span class="p">()</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Server.btnSend_click"><a class="viewcode-back" href="../Server.html#Server.Server.btnSend_click">[docs]</a>    <span class="k">def</span> <span class="nf">btnSend_click</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja se poziva kada se klikne na button &quot;btnSend&quot; ( koji sluzi za slanje poruka u javnom chat-u )</span>
+<span class="sd">        Ako nije unešen nikakav tekst u &quot;txtInput&quot; polje metoda jednostavno return-a,</span>
+<span class="sd">        u suprotnom server broadcast-a unešenu poruku svim online klijentima.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">END</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">END</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="s">&quot;Server says: &quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtInput</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">END</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Server.handlePacket"><a class="viewcode-back" href="../Server.html#Server.Server.handlePacket">[docs]</a>    <span class="k">def</span> <span class="nf">handlePacket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja služi serveru za obrađivanje podatkovih paketa primljenih od strane klijenata.</span>
+<span class="sd">        Server razlikuje 5 tipova paketa:</span>
+
+<span class="sd">        1. clientConnected - za obradu tek povezanih klijenata ( dodavanje u listu online korisnika i sl.)</span>
+
+<span class="sd">        2. clientDisconnected - za obradu klijenata koji su napustili chat (brisanje iz liste korisnika, zatvaranje klijentovog</span>
+<span class="sd">        socketa i sl.)</span>
+
+<span class="sd">        3. publicMessage - za obradu javnih poruka (proslijeđivanje javne poruke primljene od nekog klijenta</span>
+<span class="sd">        svim ostalim online klijentima)</span>
+
+<span class="sd">        4. privateMessage - za obradu privatnih poruka (proslijeđivanje privatne poruke od jednog klijenta ka drugom)</span>
+
+<span class="sd">        5. error - za obradu pogrešaka (server klijentu javlja da je došlo do neke pogreške. npr. Korisničko ime je zauzeto i sl.)</span>
+
+<span class="sd">        Primljena poruka je oblika: tipPaketa|Klijentova poruka serveru.</span>
+
+<span class="sd">        Privatna poruka je oblika: tipPaketa|podatciOPošiljatelju|podatciOPrimatelju|Klijentova poruka.</span>
+
+<span class="sd">        Metoda rastavlja primljenu poruku na svako pojavljivanje znaka &#39;|&#39;, te tako dobiva listu</span>
+<span class="sd">        stringova.</span>
+
+<span class="sd">        npr. poruka = privateMessage|zeljko:127.0.0.1:5678|mario:127.0.0.1:8765|Ovo je moja poruka</span>
+<span class="sd">            =&gt;</span>
+<span class="sd">            rastavljenaPoruka = [&quot;privateMessage&quot;, &quot;zeljko:127.0.0.1:5678&quot;, &quot;mario:127.0.0.1:8765&quot;, &quot;Ovo je moja poruka&quot;]</span>
+
+<span class="sd">        U rastavljenoj poruci na prvom mjestu (indexu 0) uvijek se nalazi tip poruke.</span>
+
+<span class="sd">        npr. print(rastavljenaPoruka[0]) ispisati ce string &quot;privateMessage&quot;</span>
+
+<span class="sd">        Nakon što server odredi tip paketa, ponovno spaja rastavljenu poruku sa znakom &#39;|&#39; (jer korisnik unutar svoje</span>
+<span class="sd">        poruke može unijeti znak &#39;|&#39;).</span>
+<span class="sd">        Server iz ponovno sastavljene poruke odbacuje tip paketa i podatke o odredištu i izvorištu,</span>
+<span class="sd">        i ostane mu samo tekst koji je user unijeo, i u ovoj situaciji server zna što treba napraviti sa danom porukom.</span>
+
+<span class="sd">        sastavljenaPoruka = &#39;|&#39;.join(rastavljenaPoruka[3:]) --&gt; spoji sve stringove iz liste rastavljenih poruka, počevši</span>
+<span class="sd">        od 3. indexa  i poveži ih znakom &#39;|&#39;.</span>
+
+<span class="sd">        :param msg: Primljeni podatci u obliku stringa</span>
+<span class="sd">        :type msg: string</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s">&#39;|&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;clientConnected&quot;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="s">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="n">clientData</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">)</span>
+            <span class="n">username</span> <span class="o">=</span> <span class="n">clientData</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ipAddr</span> <span class="o">=</span> <span class="n">clientData</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="n">clientData</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">appendMsg</span><span class="p">(</span><span class="n">username</span> <span class="o">+</span> <span class="s">&quot; connected from: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ipAddr</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">port</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">client</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">addr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="n">ipAddr</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">addr</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="n">port</span><span class="p">:</span>
+                    <span class="n">client</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">updateListBox</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sendListBoxUpdateRequest</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;clientDisconnected&quot;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="s">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;publicMessage&quot;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="s">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">appendMsg</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="s">&quot;publicMessage|&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;privateMessage&quot;</span><span class="p">:</span>
+            <span class="n">dst</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">sender</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">dstData</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">)</span>
+            <span class="n">dstUsername</span> <span class="o">=</span> <span class="n">dstData</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">dstIp</span> <span class="o">=</span> <span class="n">dstData</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">dstPort</span> <span class="o">=</span> <span class="n">dstData</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">senderData</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">)</span>
+            <span class="n">senderUsername</span> <span class="o">=</span> <span class="n">senderData</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="s">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">3</span><span class="p">:])</span>
+            <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cl</span><span class="o">.</span><span class="n">username</span> <span class="o">==</span> <span class="n">dstUsername</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">cl</span><span class="o">.</span><span class="n">addr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="n">dstIp</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">cl</span><span class="o">.</span><span class="n">addr</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="n">dstPort</span><span class="p">:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;privateMessage|&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">sender</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;|&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+                    <span class="n">cl</span><span class="o">.</span><span class="n">sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;error&quot;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="s">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+</div>
+<div class="viewcode-block" id="Server.updateListBox"><a class="viewcode-back" href="../Server.html#Server.Server.updateListBox">[docs]</a>    <span class="k">def</span> <span class="nf">updateListBox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja služi za ažuriranje liste online klijenata.</span>
+<span class="sd">        Ova metoda se poziva kada server prihvati novog klijenta, ili kada</span>
+<span class="sd">        neki od klijenata napusti chat.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">END</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cl</span><span class="o">.</span><span class="n">sock</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">listener</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clientsListBox</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">END</span><span class="p">,</span><span class="n">cl</span><span class="o">.</span><span class="n">username</span> <span class="o">+</span><span class="s">&quot;:&quot;</span><span class="o">+</span>  <span class="n">cl</span><span class="o">.</span><span class="n">addr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">cl</span><span class="o">.</span><span class="n">addr</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+</div>
+<div class="viewcode-block" id="Server.sendListBoxUpdateRequest"><a class="viewcode-back" href="../Server.html#Server.Server.sendListBoxUpdateRequest">[docs]</a>    <span class="k">def</span> <span class="nf">sendListBoxUpdateRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda kojom server šalje klijentima poruku da je došlo do izmjene liste klijenata.</span>
+<span class="sd">        Server šalje klijentima poruku oblika: updateListBox|username1:ip1:port1|username2:ip2:port2|usernameN:ipN:portN</span>
+<span class="sd">        Kada klijent primi ovu poruku, on će ju rastaviti na svako pojavljivanje znaka &#39;|&#39;, i tako</span>
+<span class="sd">        će dobiti ažuriranu listu trenutno online korisnika.</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">users</span> <span class="o">=</span> <span class="s">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">username</span> <span class="o">+</span> <span class="s">&quot;:&quot;</span><span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">addr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span><span class="s">&quot;:&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">addr</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clients</span><span class="p">)</span>
+        <span class="n">reqString</span> <span class="o">=</span> <span class="s">&quot;updateListBox|&quot;</span> <span class="o">+</span> <span class="n">users</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="n">reqString</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Server.onClosing"><a class="viewcode-back" href="../Server.html#Server.Server.onClosing">[docs]</a>    <span class="k">def</span> <span class="nf">onClosing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja se poziva kada korisnik zatvori aplikaciju. (Pritisak na &quot;X&quot; gumb u gornjem desnom kutu)&quot;</span>
+
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="Server.appendMsg"><a class="viewcode-back" href="../Server.html#Server.Server.appendMsg">[docs]</a>    <span class="k">def</span> <span class="nf">appendMsg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metoda koja služi za dodavanje tekta u &quot;txtReceive&quot; tekstualno polje.</span>
+
+<span class="sd">        :param msg: Tekst koji želimo dodati u &quot;txtReceive&quot; tekstualno polje.</span>
+<span class="sd">        :type: string</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        :rtype: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">NORMAL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">END</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">txtReceive</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">DISABLED</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../Server.html#Server.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main metoda Server skripte.</span>
+
+<span class="sd">    :return: None</span>
+<span class="sd">    :rtype: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">server</span> <span class="o">=</span> <span class="n">Server</span><span class="p">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mi">6666</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Željko Krnjić.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
